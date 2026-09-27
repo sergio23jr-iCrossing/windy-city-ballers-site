@@ -45,8 +45,22 @@ th.sorted{box-shadow:inset 0 -3px 0 var(--sky)}
 th:first-child,td:first-child{text-align:left;position:sticky;left:0;background:inherit;z-index:1}
 tbody tr{background:var(--surface)}
 tbody tr:nth-child(even){background:var(--row)}
-td.name b{display:block;font-weight:600}
-td.name span{color:var(--muted);font-size:13px}
+td.name{max-width:260px}
+td.name b,td.name .meta{display:block;overflow:hidden;text-overflow:ellipsis}
+td.name b{font-weight:600}
+td.name .meta{color:var(--muted);font-size:13px}
+td.name .short{display:none}
+th:first-child,td:first-child{box-shadow:inset -1px 0 0 var(--line)}
+@media (max-width:600px){
+  body{font-size:14px}
+  header{padding:18px 14px 4px;border-left-width:6px}
+  .controls,.wrap{padding:0 10px}
+  th,td{padding:7px 8px}
+  td.name{max-width:34vw;min-width:0}
+  td.name .full{display:none}
+  td.name .short{display:inline}
+  td.name .meta{font-size:12px}
+}
 td.lead{color:var(--star);font-weight:700}
 .empty{padding:30px;text-align:center;color:var(--muted)}
 button:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible,th:focus-visible{outline:3px solid var(--sky);outline-offset:2px}
@@ -155,6 +169,7 @@ function rows(){
   if(S.view==="players") rs = rs.filter(r=>(!S.owner||r.o===S.owner)&&(!S.pos||r.p===S.pos)&&(!S.q||r.name.toLowerCase().includes(S.q)));
   return rs;
 }
+const short = n => { const p = n.split(" "); return p.length > 1 ? `${p[0][0]}. ${p.slice(1).join(" ")}` : n; };
 const fmt = x => x==null ? "–" : (Number.isInteger(x) ? x : x.toFixed(2));
 
 function render(){
@@ -166,7 +181,7 @@ function render(){
   const head = [["name",V.name],...cols.map(k=>[k,V.labels[k]])];
   $("thead").innerHTML = "<tr>"+head.map(([k,l])=>`<th tabindex="0" data-k="${k}" class="${k===sort?"sorted":""}" aria-sort="${k===sort?(S.dir<0?"descending":"ascending"):"none"}">${l}</th>`).join("")+"</tr>";
   const max={}; cols.forEach(k=>max[k]=Math.max(0,...rs.map(r=>r.v[k]||0)));
-  $("tbody").innerHTML = rs.length ? rs.map(r=>`<tr><td class="name"><b>${r.name}</b><span>${r.sub}</span></td>`+
+  $("tbody").innerHTML = rs.length ? rs.map(r=>`<tr><td class="name" title="${r.name}"><b><span class="full">${r.name}</span><span class="short">${S.view==="players"?short(r.name):r.name}</span></b><span class="meta">${r.sub}</span></td>`+
     cols.map(k=>`<td class="${max[k]>0&&r.v[k]===max[k]?"lead":""}">${fmt(r.v[k])}</td>`).join("")+"</tr>").join("")
     : `<tr><td class="empty" colspan="${head.length}">Nothing matches these filters. Clear a filter or pick another leg.</td></tr>`;
 }
